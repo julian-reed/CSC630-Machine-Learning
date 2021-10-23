@@ -3,22 +3,41 @@
 
 """
 TO DO:
-Work on r functions
-Fix domain error
+Find out why it dosen't work, 
 """
 import math
+import numpy as np
+
 class Variable():
     import math
+    import numpy as np
+    
+    number_of_variables = 0
+    
     def __init__(self, name=None) :
         if name != None:
-            self.name = name          # its key in the evaluation dictionary
+            self.name = name
+            Variable.number_of_variables += 1
+            self.current_number = Variable.number_of_variables
             
+    @staticmethod
+    def reset():
+        Variable.number_of_variables = 0
+    
+    #Independent variable version, methods to be overwritten later
     def evaluate(self, values):
-        #Independent variable version
         return values[self.name]
     
+    def grad(self, values):
+        output = [0] * Variable.number_of_variables
+        output[self.current_number - 1] = 1
+        return np.array(output)
+        
     def __call__(self, **kwargs):
         return self.evaluate(kwargs)
+    
+    def gradient(self, **kwargs):
+        return self.grad(kwargs)
     
     def __add__(self, other):
         return AdditionVariable(self, other)
@@ -50,13 +69,12 @@ class Variable():
     def __rpow__(self, other):
         return rPowerVariable(self, other)
 
+#Object Oriented Refactoring: self, other = self.right, self.left
 class AdditionVariable(Variable):
-    #left and right corespond to where each variable is in the equation
     def __init__(self, left, right):
         self.left = left
         self.right = right
     
-    #overrides original evaluate method
     def evaluate(self, values):
         if isinstance(self.left, (float, int)):
             return self.right.evaluate(values) + self.left
@@ -66,10 +84,17 @@ class AdditionVariable(Variable):
         
         return self.left.evaluate(values) + self.right.evaluate(values)
     
-    #add gradient method later
+    def grad(self, values):
+        if isinstance(self.left, (float, int)):
+            return self.right.grad(values)
+        
+        if isinstance(self.right, (float, int)):
+            return self.left.grad(values)
+        
+        return self.left.grad(values) + self.right.grad(values)
+        
     
 class SubtractionVariable(Variable):
-    #left and right corespond to where each variable is in the equation
     def __init__(self, left, right):
         self.left = left
         self.right = right
@@ -83,10 +108,16 @@ class SubtractionVariable(Variable):
         
         return self.left.evaluate(values) - self.right.evaluate(values)
     
-    #add gradient method later
+    def grad(self, values):
+        if isinstance(self.left, (float, int)):
+            return self.right.grad(values) * -1
+        
+        if isinstance(self.right, (float, int)):
+            return self.left.grad(values)
+        
+        return self.left.grad(values) + self.right.grad(values) * -1
     
 class rSubtractionVariable(Variable):
-    #left and right corespond to where each variable is in the equation
     def __init__(self, left, right):
         self.left = right
         self.right = left
@@ -100,10 +131,16 @@ class rSubtractionVariable(Variable):
         
         return self.left.evaluate(values) - self.right.evaluate(values)
     
-    #add gradient method later
+    def grad(self, values):
+        if isinstance(self.left, (float, int)):
+            return self.right.grad(values) * -1
+        
+        if isinstance(self.right, (float, int)):
+            return self.left.grad(values)
+        
+        return self.left.grad(values) + self.right.grad(values) * -1
 
 class MultiplicationVariable(Variable):
-    #left and right corespond to where each variable is in the equation
     def __init__(self, left, right):
         self.left = left
         self.right = right
@@ -117,10 +154,16 @@ class MultiplicationVariable(Variable):
         
         return self.left.evaluate(values) * self.right.evaluate(values)
     
-    #add gradient method later
+    def grad(self, values):
+        if isinstance(self.left, (float, int)):
+            return self.right.grad(values) * self.left
+        
+        if isinstance(self.right, (float, int)):
+            return self.left.grad(values) * self.right
+        
+        return self.left.evaluate(values) * self.right.grad(values) + self.right.evaluate(values) * self.left.grad(values)
 
 class DivisionVariable(Variable):
-    #left and right corespond to where each variable is in the equation
     def __init__(self, left, right):
         self.left = left
         self.right = right
@@ -134,10 +177,16 @@ class DivisionVariable(Variable):
         
         return self.left.evaluate(values) / self.right.evaluate(values)
     
-    #add gradient method later
+    def grad(self, values):
+        if isinstance(self.left, (float, int)):
+            return self.right.grad(values)
+        
+        if isinstance(self.right, (float, int)):
+            return self.left.grad(values)
+        
+        return self.left.grad(values) * self.right.grad(values) ** -1
     
 class rDivisionVariable(Variable):
-    #left and right corespond to where each variable is in the equation
     def __init__(self, left, right):
         self.left = right
         self.right = left
@@ -151,10 +200,16 @@ class rDivisionVariable(Variable):
         
         return self.left.evaluate(values) / self.right.evaluate(values)
     
-    #add gradient method later
+    def grad(self, values):
+        if isinstance(self.left, (float, int)):
+            return self.right.grad(values)
+        
+        if isinstance(self.right, (float, int)):
+            return self.left.grad(values)
+        
+        return self.left.grad(values) * self.right.grad(values) ** -1
     
 class PowerVariable(Variable):
-    #left and right corespond to where each variable is in the equation
     def __init__(self, left, right):
         self.left = left
         self.right = right
@@ -168,10 +223,16 @@ class PowerVariable(Variable):
         
         return self.left.evaluate(values) ** self.right.evaluate(values)
     
-    #add gradient method later
+    def grad(self, values):
+        if isinstance(self.left, (float, int)):
+            return self.right.grad(values) * self.left * self.right.evaluate(values) ** (self.left - 1)
+        
+        if isinstance(self.right, (float, int)):
+            return self.left.grad(values) * self.right * self.left.evaluate(values) ** (self.right - 1)
+        
+        return (self.right.evaluate(values) * (self.left.evaluate(values) ** (self.right.evaluate(values) - 1))) * self.left.grad(values)
 
 class rPowerVariable(Variable):
-    #left and right corespond to where each variable is in the equation
     def __init__(self, left, right):
         self.left = right
         self.right = left
@@ -185,11 +246,17 @@ class rPowerVariable(Variable):
         
         return self.left.evaluate(values) ** self.right.evaluate(values)
     
-    #add gradient method later
+    def grad(self, values):
+        if isinstance(self.left, (float, int)):
+            return self.right.grad(values) * self.left * self.right.evaluate(values) ** (self.left - 1)
+        
+        if isinstance(self.right, (float, int)):
+            return self.left.grad(values) * self.right * self.left.evaluate(values) ** (self.right - 1)
+        
+        return (self.right.evaluate(values) * (self.left.evaluate(values) ** (self.right.evaluate(values) - 1))) * self.left.grad(values)
 
 class ExpVariable(Variable):
     import math
-    #left and right corespond to where each variable is in the equation
     def __init__(self, right):
         self.right = right
     
@@ -199,21 +266,27 @@ class ExpVariable(Variable):
         
         return math.e ** self.right.evaluate(values)
     
-    #add gradient method later
+    def grad(self, values):
+        if isinstance(self.right, (int, float)):
+            return (math.e ** self.right) * self.right.grad(values)
+        
+        return (math.e ** self.right.evaluate(values)) * self.right.grad(values)
     
 class LogVariable(Variable):
-    import math
-    #left and right corespond to where each variable is in the equation
     def __init__(self, right):
         self.right = right
     
     def evaluate(self, values):
         if isinstance(self.right, (int, float)):
-            return math.log(self.right) / math.log(math.e)
+            return np.log(self.right) / np.log(math.e)
         
-        return math.log(self.right.evaluate(values)) / math.log(math.e)
+        return np.log(self.right.evaluate(values)) / np.log(math.e)
     
-    #add gradient method later
+    def grad(self, values):
+        if isinstance(self.right, (int, float)):
+            return np.log(0) / np.log(math.e)
+        
+        return 1/self.right.evaluate(values) * self.right.grad(values)
     
 def exp(self):
     import math
