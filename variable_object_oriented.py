@@ -3,7 +3,8 @@
 
 """
 TO DO:
-Find out why it dosen't work, 
+Nothing! All done :)
+Onto LogReg!
 """
 import math
 import numpy as np
@@ -68,27 +69,39 @@ class Variable():
     
     def __rpow__(self, other):
         return rPowerVariable(self, other)
+    
+    def exp(self):
+        import math
+        return ExpVariable(self)
+        
+    def log(self):
+        import math
+        return LogVariable(self)
 
 #Object Oriented Refactoring: self, other = self.right, self.left
 class AdditionVariable(Variable):
     def __init__(self, left, right):
+        if type(left) == np.int32:
+            left = left.item()
         self.left = left
+        if type(right) == np.int32:
+            right = right.item()
         self.right = right
     
     def evaluate(self, values):
-        if isinstance(self.left, (float, int)):
+        if isinstance(self.left, (float, int, np.ndarray, np.int32)):
             return self.right.evaluate(values) + self.left
         
-        if isinstance(self.right, (float, int)):
+        if isinstance(self.right, (float, int, np.ndarray, np.int32)):
             return self.left.evaluate(values) + self.right
         
         return self.left.evaluate(values) + self.right.evaluate(values)
     
     def grad(self, values):
-        if isinstance(self.left, (float, int)):
+        if isinstance(self.left, (float, int, np.ndarray, np.int32)):
             return self.right.grad(values)
         
-        if isinstance(self.right, (float, int)):
+        if isinstance(self.right, (float, int, np.ndarray, np.int32)):
             return self.left.grad(values)
         
         return self.left.grad(values) + self.right.grad(values)
@@ -96,161 +109,189 @@ class AdditionVariable(Variable):
     
 class SubtractionVariable(Variable):
     def __init__(self, left, right):
+        if type(left) == np.int32:
+            left = left.item()
         self.left = left
+        if type(right) == np.int32:
+            right = right.item()
         self.right = right
     
     def evaluate(self, values):
-        if isinstance(self.left, (float, int)):
+        if isinstance(self.left, (float, int, np.ndarray, np.int32)):
             return self.left - self.right.evaluate(values)
         
-        if isinstance(self.right, (float, int)):
+        if isinstance(self.right, (float, int, np.ndarray, np.int32)):
             return self.left.evaluate(values) - self.right
         
         return self.left.evaluate(values) - self.right.evaluate(values)
     
     def grad(self, values):
-        if isinstance(self.left, (float, int)):
+        if isinstance(self.left, (float, int, np.ndarray, np.int32)):
             return self.right.grad(values) * -1
         
-        if isinstance(self.right, (float, int)):
+        if isinstance(self.right, (float, int, np.ndarray, np.int32)):
             return self.left.grad(values)
         
         return self.left.grad(values) + self.right.grad(values) * -1
     
 class rSubtractionVariable(Variable):
     def __init__(self, left, right):
-        self.left = right
-        self.right = left
+        if type(left) == np.int32:
+            left = left.item()
+        self.left = left
+        if type(right) == np.int32:
+            right = right.item()
+        self.right = right
     
     def evaluate(self, values):
-        if isinstance(self.left, (float, int)):
+        if isinstance(self.left, (float, int, np.ndarray, np.int32)):
             return self.left - self.right.evaluate(values)
         
-        if isinstance(self.right, (float, int)):
+        if isinstance(self.right, (float, int, np.ndarray, np.int32)):
             return self.left.evaluate(values) - self.right
         
         return self.left.evaluate(values) - self.right.evaluate(values)
     
     def grad(self, values):
-        if isinstance(self.left, (float, int)):
+        if isinstance(self.left, (float, int, np.ndarray, np.int32)):
             return self.right.grad(values) * -1
         
-        if isinstance(self.right, (float, int)):
+        if isinstance(self.right, (float, int, np.ndarray, np.int32)):
             return self.left.grad(values)
         
         return self.left.grad(values) + self.right.grad(values) * -1
 
 class MultiplicationVariable(Variable):
     def __init__(self, left, right):
+        if type(left) == np.int32:
+            left = left.item()
         self.left = left
+        if type(right) == np.int32:
+            right = right.item()
         self.right = right
     
     def evaluate(self, values):
-        if isinstance(self.left, (float, int)):
+        if isinstance(self.left, (float, int, np.ndarray, np.int32)):
             return self.right.evaluate(values) * self.left
         
-        if isinstance(self.right, (float, int)):
+        if isinstance(self.right, (float, int, np.ndarray)):
             return self.left.evaluate(values) * self.right
         
         return self.left.evaluate(values) * self.right.evaluate(values)
     
     def grad(self, values):
-        if isinstance(self.left, (float, int)):
+        if isinstance(self.left, (float, int, np.ndarray, np.int32)):
             return self.right.grad(values) * self.left
         
-        if isinstance(self.right, (float, int)):
+        if isinstance(self.right, (float, int, np.ndarray, np.int32)):
             return self.left.grad(values) * self.right
         
         return self.left.evaluate(values) * self.right.grad(values) + self.right.evaluate(values) * self.left.grad(values)
 
 class DivisionVariable(Variable):
     def __init__(self, left, right):
+        if type(left) == np.int32:
+            left = left.item()
         self.left = left
+        if type(right) == np.int32:
+            right = right.item()
         self.right = right
     
     def evaluate(self, values):
-        if isinstance(self.left, (float, int)):
+        if isinstance(self.left, (float, int, np.ndarray, np.int32)):
             return self.left / self.right.evaluate(values) 
         
-        if isinstance(self.right, (float, int)):
+        if isinstance(self.right, (float, int, np.ndarray, np.int32)):
             return self.left.evaluate(values) / self.right
         
         return self.left.evaluate(values) / self.right.evaluate(values)
     
     def grad(self, values):
-        if isinstance(self.left, (float, int)):
+        if isinstance(self.left, (float, int, np.ndarray, np.int32)):
             return self.right.grad(values)
         
-        if isinstance(self.right, (float, int)):
+        if isinstance(self.right, (float, int, np.ndarray, np.int32)):
             return self.left.grad(values)
         
         return self.left.grad(values) * self.right.grad(values) ** -1
     
 class rDivisionVariable(Variable):
     def __init__(self, left, right):
-        self.left = right
-        self.right = left
+        if type(left) == np.int32:
+            left = left.item()
+        self.left = left
+        if type(right) == np.int32:
+            right = right.item()
+        self.right = right
     
     def evaluate(self, values):
-        if isinstance(self.left, (float, int)):
+        if isinstance(self.left, (float, int, np.ndarray, np.int32)):
             return self.left / self.right.evaluate(values) 
         
-        if isinstance(self.right, (float, int)):
+        if isinstance(self.right, (float, int, np.ndarray, np.int32)):
             return self.left.evaluate(values) / self.right
         
         return self.left.evaluate(values) / self.right.evaluate(values)
     
     def grad(self, values):
-        if isinstance(self.left, (float, int)):
+        if isinstance(self.left, (float, int, np.ndarray, np.int32)):
             return self.right.grad(values)
         
-        if isinstance(self.right, (float, int)):
+        if isinstance(self.right, (float, int, np.ndarray, np.int32)):
             return self.left.grad(values)
         
         return self.left.grad(values) * self.right.grad(values) ** -1
     
 class PowerVariable(Variable):
     def __init__(self, left, right):
+        if type(left) == np.int32:
+            left = left.item()
         self.left = left
+        if type(right) == np.int32:
+            right = right.item()
         self.right = right
     
     def evaluate(self, values):
-        if isinstance(self.left, (float, int)):
+        if isinstance(self.left, (float, int, np.ndarray, np.int32)):
             return self.left ** self.right.evaluate(values) 
         
-        if isinstance(self.right, (float, int)):
+        if isinstance(self.right, (float, int, np.ndarray, np.int32)):
             return self.left.evaluate(values) ** self.right
         
         return self.left.evaluate(values) ** self.right.evaluate(values)
     
     def grad(self, values):
-        if isinstance(self.left, (float, int)):
+        if isinstance(self.left, (float, int, np.ndarray, np.int32)):
             return self.right.grad(values) * self.left * self.right.evaluate(values) ** (self.left - 1)
         
-        if isinstance(self.right, (float, int)):
+        if isinstance(self.right, (float, int, np.ndarray, np.int32)):
             return self.left.grad(values) * self.right * self.left.evaluate(values) ** (self.right - 1)
         
         return (self.right.evaluate(values) * (self.left.evaluate(values) ** (self.right.evaluate(values) - 1))) * self.left.grad(values)
 
 class rPowerVariable(Variable):
     def __init__(self, left, right):
-        self.left = right
-        self.right = left
+        if type(left) == np.int32:
+            left = left.item()
+        self.left = left
+        if type(right) == np.int32:
+            right = right.item()
+        self.right = right
     
     def evaluate(self, values):
-        if isinstance(self.left, (float, int)):
+        if isinstance(self.left, (float, int, np.ndarray, np.int32)):
             return self.left ** self.right.evaluate(values) 
         
-        if isinstance(self.right, (float, int)):
+        if isinstance(self.right, (float, int, np.ndarray, np.int32)):
             return self.left.evaluate(values) ** self.right
         
         return self.left.evaluate(values) ** self.right.evaluate(values)
     
     def grad(self, values):
-        if isinstance(self.left, (float, int)):
+        if isinstance(self.left, (float, int, np.ndarray, np.int32)):
             return self.right.grad(values) * self.left * self.right.evaluate(values) ** (self.left - 1)
         
-        if isinstance(self.right, (float, int)):
+        if isinstance(self.right, (float, int, np.ndarray, np.int32)):
             return self.left.grad(values) * self.right * self.left.evaluate(values) ** (self.right - 1)
         
         return (self.right.evaluate(values) * (self.left.evaluate(values) ** (self.right.evaluate(values) - 1))) * self.left.grad(values)
@@ -258,32 +299,36 @@ class rPowerVariable(Variable):
 class ExpVariable(Variable):
     import math
     def __init__(self, right):
+        if type(right) == np.int32:
+            right = right.item()
         self.right = right
     
     def evaluate(self, values):
-        if isinstance(self.right, (int, float)):
+        if isinstance(self.right, (float, int, np.ndarray, np.int32)):
             return math.e ** self.right
         
         return math.e ** self.right.evaluate(values)
     
     def grad(self, values):
-        if isinstance(self.right, (int, float)):
+        if isinstance(self.right, (float, int, np.ndarray, np.int32)):
             return (math.e ** self.right) * self.right.grad(values)
         
         return (math.e ** self.right.evaluate(values)) * self.right.grad(values)
     
 class LogVariable(Variable):
     def __init__(self, right):
+        if type(right) == np.int32:
+            right = right.item()
         self.right = right
     
     def evaluate(self, values):
-        if isinstance(self.right, (int, float)):
+        if isinstance(self.right, (float, int, np.ndarray, np.int32)):
             return np.log(self.right) / np.log(math.e)
         
         return np.log(self.right.evaluate(values)) / np.log(math.e)
     
     def grad(self, values):
-        if isinstance(self.right, (int, float)):
+        if isinstance(self.right, (float, int, np.ndarray, np.int32)):
             return np.log(0) / np.log(math.e)
         
         return 1/self.right.evaluate(values) * self.right.grad(values)
